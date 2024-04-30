@@ -67,22 +67,25 @@ jobs:
         uname -m
         echo $(nproc)
         free -h
-        cp $(ls /boot/config-* | shuf -n 1) .config
+        
 
-    # - name: clone repo
-    #   run: |   
-    #     source ${{ env.TMP_ENV }}
-    #     if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
-    #       git clone -v ${{ env.REPO }} linux
-    #     fi
+    - name: clone repo
+      run: |   
+        source ${{ env.TMP_ENV }}
+        if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
+          git clone -v ${{ env.REPO }} linux
+          cd linux && git checkout ${{ env.BRANCH }} && git pull && cd ..
+        fi
           
-    # - name: build kernel
-    #   run: |  
-    #     source ${{ env.TMP_ENV }}
-    #     if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
-    #       cd linux
-    #       make ARCH=x86_64 mrproper
-    #       make olddefconfig
-    #       make -j$(nproc)
-    #     fi
+    - name: build kernel
+      run: |  
+        source ${{ env.TMP_ENV }}
+        if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
+          cd linux
+          make ARCH=x86_64 mrproper
+          rm -rf .config
+          cp $(ls /boot/config-* | shuf -n 1) .config
+          make olddefconfig
+          make -j$(nproc)
+        fi
         
