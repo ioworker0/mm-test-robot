@@ -82,8 +82,6 @@ jobs:
         source ${{ env.TMP_ENV }}
         if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
           cd linux
-          make ARCH=x86_64 mrproper
-          rm -rf .config
           cp $(ls /boot/config-* | shuf -n 1) .config
           make olddefconfig
           make -j$(nproc)
