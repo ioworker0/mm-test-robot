@@ -85,6 +85,8 @@ jobs:
           cd linux
           cp $(ls /boot/config-* | shuf -n 1) .config
           make olddefconfig
+          sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
+          sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
           make -j$(nproc)
         fi
         
