@@ -67,7 +67,7 @@ jobs:
         uname -m
         echo $(nproc)
         free -h
-        ls -l /boot
+        cp $(ls /boot/config-* | shuf -n 1) .config
 
     # - name: clone repo
     #   run: |   
