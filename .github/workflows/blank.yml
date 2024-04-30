@@ -1,0 +1,93 @@
+# This is a basic workflow to help you get started with Actions
+
+name: MM-TEST-ROBOT
+
+# Controls when the workflow will run
+on:
+  # # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # schedule:
+  #   - cron: '*/5 * * * *'  # 每5分钟执行一次
+
+env:
+  BRANCH: mm-unstable
+  TMP_ENV: /tmp/output.env
+  REPO: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+        
+    permissions:
+      # Give the default GITHUB_TOKEN write permission.
+      # https://github.blog/changelog/2023-02-02-github-actions-updating-the-default-github_token-permissions-to-read-only/
+      contents: write
+      
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v2
+
+    - name: read previous commit ID
+      id: read-previous-commit-id
+      run: |
+        echo "PREVIOUS_COMMIT_ID=$(cat previous_commit_id.txt)" > ${{ env.TMP_ENV }}
+        echo $(cat ${{ env.TMP_ENV }})
+
+    - name: get latest commit ID
+      id: get-latest-commit-id
+      run: |
+        echo "LATEST_COMMIT_ID=$(git ls-remote ${{ env.REPO }} refs/heads/${{ env.BRANCH }} | awk '{print $1}')" >> ${{ env.TMP_ENV }}
+        echo $(cat ${{ env.TMP_ENV }})
+    
+    - name: commit and push changes
+      run: |
+        source ${{ env.TMP_ENV }}
+        if [ "$PREVIOUS_COMMIT_ID" = "$LATEST_COMMIT_ID" ]; then
+          echo "Commit ID has not changed. No action needed :P"
+        else
+          echo $LATEST_COMMIT_ID > previous_commit_id.txt
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add previous_commit_id.txt
+          git commit -m "Update previous commit ID"
+          git push origin main
+        fi
+
+    - name: system resources
+      run: |      
+        uname -r
+        uname -m
+        echo $(nproc)
+        free -h
+
+    - name: clone lance repo
+      run: |   
+        source ${{ env.TMP_ENV }}
+        if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
+          git clone -v ${{ env.REPO }}
+          cd linux && git checkout ${{ env.BRANCH }} && git pull && cd ..
+          sudo apt-get install -y gcc-11-aarch64-linux-gnu && \
+          sudo dpkg -L gcc-11-aarch64-linux-gnu && \
+          sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-11 /usr/bin/aarch64-linux-gnu-gcc
+        fi
+          
+    - name: build kernel
+      run: |  
+        source ${{ env.TMP_ENV }}
+        if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
+          cd linux
+          make ARCH=arm64 mrproper
+          make ARCH=arm64 allnoconfig
+          export ARCH=arm64
+          export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
+          make olddefconfig
+          make -j$(nproc)
+        fi
+        
