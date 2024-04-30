@@ -4,13 +4,13 @@ name: MM-TEST-ROBOT-X86-64
 
 # Controls when the workflow will run
 on:
-  # # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  # schedule:
-  #   - cron: '*/5 * * * *'  # 每5分钟执行一次
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+  schedule:
+  - cron: '*/15 * * * *'  # Runs every 15 minutes.
 
 env:
   BRANCH: mm-unstable
