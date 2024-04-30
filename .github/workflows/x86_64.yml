@@ -67,7 +67,7 @@ jobs:
         uname -m
         echo $(nproc)
         free -h
-        ll /boot
+        ls -l /boot
 
     # - name: clone repo
     #   run: |   
