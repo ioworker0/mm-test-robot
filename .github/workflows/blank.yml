@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: MM-TEST-ROBOT
+name: MM-TEST-ROBOT-ARM64
 
 # Controls when the workflow will run
 on:
@@ -67,7 +67,7 @@ jobs:
         echo $(nproc)
         free -h
 
-    - name: clone lance repo
+    - name: clone repo
       run: |   
         source ${{ env.TMP_ENV }}
         if [ "$PREVIOUS_COMMIT_ID" != "$LATEST_COMMIT_ID" ]; then
