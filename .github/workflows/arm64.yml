@@ -88,6 +88,6 @@ jobs:
           export ARCH=arm64
           export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
           make olddefconfig
-          make -j$(nproc) bzImage
+          make -j$(nproc)
         fi
         
