@@ -28,8 +28,6 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: rebot
 
       - name: system resources
         run: |      
@@ -41,18 +39,20 @@ jobs:
       - uses: actions/cache@v4
         id: repo-cache
         with:
-          path: .
+          path: ../
           key: linux
     
       - name: clone repo
         if: steps.repo-cache.outputs.cache-hit != 'true'
         run: |
-          git clone -v ${{ env.REPO }} linux
+          cd .. && git clone -v ${{ env.REPO }} linux
           
       - name: pre-clean up
         run: |
           ls -l
-          cd linux
+          echo "111111"
+          cd .. && ls -l
+          cd ../linux
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
             git branch -D ${{ env.BRANCH }}
           else
@@ -63,7 +63,7 @@ jobs:
           
       - name: pull branch
         run: |
-          cd linux
+          cd ../linux
           git pull
           git checkout ${{ env.BRANCH }} && git pull
 
