@@ -28,6 +28,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: robot
 
       - name: system resources
         run: |      
@@ -45,6 +47,7 @@ jobs:
       - name: clone repo
         if: steps.repo-cache.outputs.cache-hit != 'true'
         run: |
+          ls -l
           git clone -v ${{ env.REPO }} linux
           
       - name: pre-clean up
