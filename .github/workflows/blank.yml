@@ -55,7 +55,7 @@ jobs:
           cd linux
           git worktree list
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
-            git branch -d ${{ env.BRANCH }}
+            sudo git branch -D ${{ env.BRANCH }}
           else
               echo "Branch ${{ env.BRANCH }} does not exist."
           fi
