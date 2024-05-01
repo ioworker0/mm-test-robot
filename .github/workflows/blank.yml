@@ -54,7 +54,7 @@ jobs:
         run: |
           cd linux
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
-            git branch -D ${{ env.BRANCH }}
+            git branch -d ${{ env.BRANCH }}
           else
               echo "Branch ${{ env.BRANCH }} does not exist."
           fi
