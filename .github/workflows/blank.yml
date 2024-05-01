@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: MM-TEST-ROBOT-28-NEW
+name: MM-ROBOT-28-NEW
 
 # Controls when the workflow will run
 on:
