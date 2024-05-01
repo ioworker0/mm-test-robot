@@ -33,6 +33,6 @@ jobs:
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          mkdir -p /data
+          mkdir -p /data && chmod 777 /data
           cd /data
           git clone https://github.com/ioworker0/test-robot.git linux
