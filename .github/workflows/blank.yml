@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  BRANCH: mm-unstable
+  BRANCH: 28-new
   REPO: https://github.com/ioworker0/linux.git
 
 
@@ -61,7 +61,7 @@ jobs:
             echo "Branch ${{ env.BRANCH }} does not exist."
           fi
           make clean
-          rm -rf .config
+          rm -rf .config*
           
       - name: pull branch
         run: |
@@ -69,12 +69,25 @@ jobs:
           git pull
           git checkout ${{ env.BRANCH }} && git pull
 
-      # - name: build kerne   
-      #   run: |  
-      #     cd linux
-      #     make ARCH=arm64 mrproper
-      #     make ARCH=arm64 allnoconfig
-      #     export ARCH=arm64
-      #     export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
-      #     make olddefconfig
-      #     make -j$(nproc)
+      - name: pre-build kernel arm64
+        run: |  
+          sudo apt-get install -y gcc-11-aarch64-linux-gnu && \
+          sudo dpkg -L gcc-11-aarch64-linux-gnu && \
+          sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-11 /usr/bin/aarch64-linux-gnu-gcc
+          
+      - name: build kernel arm64
+        run: |  
+          cd linux
+          make ARCH=arm64 mrproper
+          make ARCH=arm64 allnoconfig
+          export ARCH=arm64
+          export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
+          make olddefconfig
+          make -j$(nproc)
+        
+      - name: post-build kernel arm64
+        run: |  
+          cd linux
+          make clean
+          rm -rf .config*
+          
