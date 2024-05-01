@@ -1,57 +1,34 @@
-# This is a basic workflow to help you get started with Actions
-
 name: MM-ROBOT-TESTING
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  # push:
-  #   branches: [ "main" ]
-  # pull_request:
-  #   branches: [ "main" ]
   schedule:
   - cron: '*/5 * * * *'  # Runs every 5 minutes.
-
-  # Allows you to run this workflow manually from the Actions tab
-  # workflow_dispatch:
 
 env:
   BRANCH: testing
   REPO: https://github.com/ioworker0/linux.git
 
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     permissions:
-      # Give the default GITHUB_TOKEN write permission.
-      # https://github.blog/changelog/2023-02-02-github-actions-updating-the-default-github_token-permissions-to-read-only/
       contents: write
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v3
         with:
           path: robot
 
       - name: system resources
-        run: |      
-          uname -r
-          uname -m
-          echo $(nproc)
-          free -h
+        run: |
+          uname -r && uname -m && echo $(nproc) && free -h
 
       - name: check against the commit ID
         run: |
           cd robot
           export PREVIOUS_COMMIT_ID=$(cat ${{ env.BRANCH }}_previous_commit_id.txt)
           export LATEST_COMMIT_ID=$(git ls-remote ${{ env.REPO }} refs/heads/${{ env.BRANCH }} | awk '{print $1}')
-          echo $PREVIOUS_COMMIT_ID
-          echo $LATEST_COMMIT_ID
           if [ "$PREVIOUS_COMMIT_ID" = "$LATEST_COMMIT_ID" ]; then
             echo "Commit ID has not changed. No action needed :P"
             echo "condition=false" >> $GITHUB_ENV
@@ -64,25 +41,24 @@ jobs:
             git push origin main
             echo "condition=true" >> $GITHUB_ENV
           fi
-          
+
       - uses: actions/cache@v4
         if: env.condition == 'true'
         id: repo-cache
         with:
           path: .
           key: linux
-    
+
       - name: clone repo
         if: steps.repo-cache.outputs.cache-hit != 'true' && env.condition == 'true'
         run: |
           ls -l
           git clone -v ${{ env.REPO }} linux
-          
+
       - name: pre-clean up
         if: env.condition == 'true'
         run: |
           cd linux
-          git worktree list
           git checkout master
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
             git branch -D ${{ env.BRANCH }}
@@ -91,24 +67,22 @@ jobs:
           fi
           make clean
           rm -rf .config*
-          
+
       - name: pull branch
         if: env.condition == 'true'
         run: |
-          cd linux
-          git pull
-          git checkout ${{ env.BRANCH }} && git pull
+          cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
 
       - name: pre-build kernel arm64
         if: env.condition == 'true'
-        run: |  
+        run: |
           sudo apt-get install -y gcc-11-aarch64-linux-gnu && \
           sudo dpkg -L gcc-11-aarch64-linux-gnu && \
           sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-11 /usr/bin/aarch64-linux-gnu-gcc
-          
+
       - name: build kernel arm64
         if: env.condition == 'true'
-        run: |  
+        run: |
           cd linux
           make ARCH=arm64 mrproper
           make ARCH=arm64 allnoconfig
@@ -116,22 +90,22 @@ jobs:
           export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
           make olddefconfig
           make -j$(nproc)
-        
+
       - name: post-build kernel arm64
         if: env.condition == 'true'
-        run: |  
+        run: |
           cd linux
           make clean
           rm -rf .config*
 
       - name: pre-build kernel x86-64
         if: env.condition == 'true'
-        run: |  
+        run: |
           sudo apt-get install -y libelf-dev
-       
+
       - name: build kernel x86-64
         if: env.condition == 'true'
-        run: |  
+        run: |
           cd linux
           cp $(ls /boot/config-* | shuf -n 1) .config
           make olddefconfig
@@ -141,7 +115,7 @@ jobs:
 
       - name: post-build kernel x86-64
         if: env.condition == 'true'
-        run: |  
+        run: |
           cd linux
           make clean
           rm -rf .config*
