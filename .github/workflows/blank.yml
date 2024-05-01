@@ -35,4 +35,4 @@ jobs:
         run: |
           mkdir -p /data && sudo chmod 777 /data
           cd /data
-          git clone https://github.com/ioworker0/test-robot.git linux
+          git clone https://github.com/ioworker0/ioworker0.git linux
