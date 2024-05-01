@@ -10,7 +10,7 @@ on:
   # pull_request:
   #   branches: [ "main" ]
   schedule:
-  - cron: '*/30 * * * *'  # Runs every 30 minutes.
+  - cron: '30 0-16 * * *'  # Runs at 30 minutes past the hour, between 00:00 and 16:59. 北京时间白天 8点到晚上12点，每隔半小时执行一次
 
   # Allows you to run this workflow manually from the Actions tab
   # workflow_dispatch:
