@@ -39,17 +39,17 @@ jobs:
       - uses: actions/cache@v4
         id: repo-cache
         with:
-          path: ../
+          path: .
           key: linux
     
       - name: clone repo
         if: steps.repo-cache.outputs.cache-hit != 'true'
         run: |
-          cd .. && git clone -v ${{ env.REPO }} linux
+          git clone -v ${{ env.REPO }} linux
           
       - name: pre-clean up
         run: |
-          cd ../linux
+          cd linux
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
             git branch -D ${{ env.BRANCH }}
           else
@@ -60,7 +60,7 @@ jobs:
           
       - name: pull branch
         run: |
-          cd ../linux
+          cd linux
           git pull
           git checkout ${{ env.BRANCH }} && git pull
 
