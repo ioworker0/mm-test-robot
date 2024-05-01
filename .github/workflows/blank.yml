@@ -54,10 +54,11 @@ jobs:
         run: |
           cd linux
           git worktree list
+          git checkout master
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
-            sudo git branch -D ${{ env.BRANCH }}
+            git branch -D ${{ env.BRANCH }}
           else
-              echo "Branch ${{ env.BRANCH }} does not exist."
+            echo "Branch ${{ env.BRANCH }} does not exist."
           fi
           make clean
           rm -rf .config
