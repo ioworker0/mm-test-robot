@@ -15,6 +15,7 @@ on:
 
 env:
   BRANCH: mm-unstable
+  REPO: https://github.com/ioworker0/linux.git
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -34,13 +35,23 @@ jobs:
           path: .
           key: linux
     
-      - name: Install Dependencies
+      - name: clone repo
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          cd .
-          git clone https://github.com/ioworker0/ioworker0.git linux
+          git clone -v ${{ env.REPO }} linux
+          
+      - name: pre-clean up
+        run: |
+          cd linux
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
             git branch -D ${{ env.BRANCH }}
           else
               echo "Branch ${{ env.BRANCH }} does not exist."
           fi
+          make clean
+          rm -rf .config
+          
+      - name: pull branch
+        run: |
+          cd linux
+          git checkout ${{ env.BRANCH }} && git pull
