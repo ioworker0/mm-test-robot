@@ -30,13 +30,13 @@ jobs:
       - uses: actions/checkout@v3
     
       - uses: actions/cache@v4
-        id: cache
+        id: repo-cache
         with:
           path: .
           key: linux
     
       - name: clone repo
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.repo-cache.outputs.cache-hit != 'true'
         run: |
           git clone -v ${{ env.REPO }} linux
           
