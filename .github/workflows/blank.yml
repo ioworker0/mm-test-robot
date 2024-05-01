@@ -49,9 +49,6 @@ jobs:
           
       - name: pre-clean up
         run: |
-          ls -l
-          echo "111111"
-          cd .. && ls -l
           cd ../linux
           if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
             git branch -D ${{ env.BRANCH }}
