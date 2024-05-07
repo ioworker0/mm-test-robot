@@ -47,6 +47,7 @@ jobs:
       - name: cc
         run: |
           git clone https://github.com/intel/lkp-tests.git lkp-tests
+          cd lkp-tests && make install && cd ..
           mkdir build_dir && cp $(ls /boot/config-* | shuf -n 1) build_dir/.config
           COMPILER_INSTALL_PATH=/usr/bin COMPILER=clang lkp-tests/kbuild/make.cross W=1 O=build_dir olddefconfig
           COMPILER_INSTALL_PATH=/usr/bin COMPILER=clang lkp-tests/kbuild/make.cross W=1 O=build_dir SHELL=/bin/bash linux/
