@@ -91,8 +91,7 @@ jobs:
           export ARCH=arm64
           export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
           make olddefconfig
-          export CFLAGS="-Wall -Wextra -Werror"
-          make -j$(nproc)
+          make CFLAGS_KERNEL="-Wall -Wextra -Werror" -j$(nproc)
         
       - name: post-build kernel arm64
         if: env.condition == 'true'
@@ -114,8 +113,7 @@ jobs:
           make olddefconfig
           sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
           sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
-          export CFLAGS="-Wall -Wextra -Werror"
-          make -j$(nproc) bzImage
+          make CFLAGS_KERNEL="-Wall -Wextra -Werror" -j$(nproc) bzImage
 
       - name: post-build kernel x86-64
         if: env.condition == 'true'
