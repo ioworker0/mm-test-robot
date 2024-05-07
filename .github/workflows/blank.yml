@@ -30,6 +30,21 @@ jobs:
         run: |      
           uname -r && uname -m && echo $(nproc) && free -h
 
+      - uses: actions/cache@v4
+        id: repo-cache
+        with:
+          path: .
+          key: linux
+    
+      - name: clone repo
+        if: steps.repo-cache.outputs.cache-hit != 'true'
+        run: |
+          ls -l
+          git clone -v ${{ env.REPO }} linux
+
       - name: cc
         run: |
-          clang -v
+          git clone https://github.com/intel/lkp-tests.git lkp-tests
+          mkdir build_dir && cp $(ls /boot/config-* | shuf -n 1) build_dir/.config
+          COMPILER=clang lkp-tests/kbuild/make.cross W=1 O=build_dir olddefconfig
+          COMPILER=clang lkp-tests/kbuild/make.cross W=1 O=build_dir SHELL=/bin/bash linux/
