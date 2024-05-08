@@ -72,4 +72,4 @@ jobs:
           export ARCH=arm64
           export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
           make olddefconfig
-          make CFLAGS_KERNEL="-Wsometimes-uninitialized -Werror" -j$(nproc)
+          make CFLAGS_KERNEL="-Wuninitialized -Wunused-function -Werror" -j$(nproc)
