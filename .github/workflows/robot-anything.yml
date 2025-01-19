@@ -1,0 +1,107 @@
+name: MM-ROBOT-ANYTHING
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BRANCH: lance-map-droppable
+  REPO: https://github.com/ioworker0/linux.git
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: robot
+
+      - name: system resources
+        run: |      
+          uname -r && uname -m && echo $(nproc) && free -h
+
+      - uses: actions/cache@v4
+        if: env.condition == 'true'
+        id: repo-cache
+        with:
+          path: .
+          key: linux
+    
+      - name: clone repo
+        if: steps.repo-cache.outputs.cache-hit != 'true' && env.condition == 'true'
+        run: |
+          ls -l
+          git clone -v ${{ env.REPO }} linux
+          
+      - name: pre-clean up
+        if: env.condition == 'true'
+        run: |
+          cd linux
+          git checkout master
+          if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
+            git branch -D ${{ env.BRANCH }}
+          else
+            echo "Branch ${{ env.BRANCH }} does not exist."
+          fi
+          make clean
+          rm -rf .config*
+          
+      - name: pull branch
+        if: env.condition == 'true'
+        run: |
+          cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
+
+      - name: pre-build kernel arm64
+        if: env.condition == 'true'
+        run: |  
+          sudo apt-get install -y gcc-11-aarch64-linux-gnu && \
+          sudo dpkg -L gcc-11-aarch64-linux-gnu && \
+          sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-11 /usr/bin/aarch64-linux-gnu-gcc
+          
+      - name: build kernel arm64
+        if: env.condition == 'true'
+        run: |  
+          cd linux
+          make ARCH=arm64 mrproper
+          make ARCH=arm64 allnoconfig
+          export ARCH=arm64
+          export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
+          make olddefconfig
+          make -j$(nproc)
+        
+      - name: post-build kernel arm64
+        if: env.condition == 'true'
+        run: |  
+          cd linux
+          make clean
+          rm -rf .config*
+
+      - name: pre-build kernel x86-64
+        if: env.condition == 'true'
+        run: |  
+          sudo apt-get install -y libelf-dev
+       
+      - name: build kernel x86-64
+        if: env.condition == 'true'
+        run: |  
+          cd linux
+          cp $(ls /boot/config-* | shuf -n 1) .config
+          sed -i 's/^# CONFIG_KASAN is not set/CONFIG_KASAN=y/' .config
+          sed -i 's/^# CONFIG_KCSAN is not set/CONFIG_KCSAN=y/' .config
+          make olddefconfig
+          sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
+          sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
+          make -j$(nproc) bzImage
+
+      - name: post-build kernel x86-64
+        if: env.condition == 'true'
+        run: |  
+          cd linux
+          make clean
+          rm -rf .config*
