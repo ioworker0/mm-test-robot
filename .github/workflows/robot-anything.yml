@@ -51,7 +51,6 @@ jobs:
           rm -rf .config*
           
       - name: pull branch
-        if: env.condition == 'true'
         run: |
           cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
 
