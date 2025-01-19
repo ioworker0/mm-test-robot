@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  BRANCH: lance-map-droppable
+  BRANCH: lance-swap-droppable
   REPO: https://github.com/ioworker0/linux.git
 
 jobs:
