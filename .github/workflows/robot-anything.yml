@@ -27,14 +27,13 @@ jobs:
           uname -r && uname -m && echo $(nproc) && free -h
 
       - uses: actions/cache@v4
-        if: env.condition == 'true'
         id: repo-cache
         with:
           path: .
           key: linux
     
       - name: clone repo
-        if: steps.repo-cache.outputs.cache-hit != 'true' && env.condition == 'true'
+        if: steps.repo-cache.outputs.cache-hit != 'true'
         run: |
           ls -l
           git clone -v ${{ env.REPO }} linux
