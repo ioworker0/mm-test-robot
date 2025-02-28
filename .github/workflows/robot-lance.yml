@@ -2,15 +2,15 @@
 
 name: MM-ROBOT-LANCE
 
-# on:
-#   schedule:
-#      - cron: '*/5 * * * *'  # Runs every 5 minutes.
-
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  schedule:
+     - cron: '*/5 * * * *'  # Runs every 5 minutes.
+
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
 
 env:
   BRANCH: lance
@@ -84,9 +84,10 @@ jobs:
       - name: pre-build kernel arm64
         if: env.condition == 'true'
         run: |  
-          sudo apt-get install -y gcc-11-aarch64-linux-gnu && \
-          sudo dpkg -L gcc-11-aarch64-linux-gnu && \
-          sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-11 /usr/bin/aarch64-linux-gnu-gcc
+          sudo apt-get update && \
+          sudo apt-get install -y gcc-14-aarch64-linux-gnu && \
+          sudo dpkg -L gcc-14-aarch64-linux-gnu && \
+          sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-14 /usr/bin/aarch64-linux-gnu-gcc
           
       - name: build kernel arm64
         if: env.condition == 'true'
