@@ -2,9 +2,15 @@
 
 name: MM-ROBOT-LANCE
 
+# on:
+#   schedule:
+#      - cron: '*/5 * * * *'  # Runs every 5 minutes.
+
 on:
-  schedule:
-     - cron: '*/5 * * * *'  # Runs every 5 minutes.
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 env:
   BRANCH: lance
