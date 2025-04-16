@@ -96,6 +96,8 @@ jobs:
           make olddefconfig
           sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
           sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
+          cat .config | grep CONFIG_MM_ID
+          cat .config | CONFIG_TRANSPARENT_HUGEPAGE
           make -j$(nproc) bzImage
 
       - name: post-build kernel x86-64 w/o CONFIG_DETECT_HUNG_TASK
