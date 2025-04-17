@@ -58,29 +58,6 @@ jobs:
         run: |
           cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
 
-      - name: pre-build kernel arm64
-        run: |  
-          sudo apt-get update && \
-          sudo apt-get install -y gcc-14-aarch64-linux-gnu && \
-          sudo dpkg -L gcc-14-aarch64-linux-gnu && \
-          sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-14 /usr/bin/aarch64-linux-gnu-gcc
-          
-      - name: build kernel arm64
-        run: |  
-          cd linux
-          make ARCH=arm64 mrproper
-          make ARCH=arm64 allnoconfig
-          export ARCH=arm64
-          export CROSS_COMPILE="/usr/bin/aarch64-linux-gnu-"
-          make olddefconfig
-          make -j$(nproc)
-        
-      - name: post-build kernel arm64
-        run: |  
-          cd linux
-          make clean
-          rm -rf .config*
-
       - name: pre-build kernel x86-64
         run: |  
           sudo apt-get install -y libelf-dev
