@@ -13,6 +13,7 @@ on:
 env:
   BRANCH: lance
   REPO: https://github.com/ioworker0/linux.git
+  FEAT: HUNGTASK
 
 jobs:
   build:
@@ -29,6 +30,25 @@ jobs:
       - name: system resources
         run: |      
           uname -r && uname -m && echo $(nproc) && free -h
+
+      - name: check against the commit ID
+        run: |
+          cd robot
+          export PREVIOUS_COMMIT_ID=$(cat ${{ env.BRANCH }}_${{ env.FEAT }}_previous_commit_id.txt)
+          export LATEST_COMMIT_ID=$(git ls-remote ${{ env.REPO }} refs/heads/${{ env.BRANCH }} | awk '{print $1}')
+          if [ "$PREVIOUS_COMMIT_ID" = "$LATEST_COMMIT_ID" ]; then
+            echo "Commit ID has not changed. No action needed :P"
+            echo "condition=false" >> $GITHUB_ENV
+            exit 0
+          else
+            echo $LATEST_COMMIT_ID > ${{ env.BRANCH }}_${{ env.FEAT }}_previous_commit_id.txt
+            git config --global user.email "actions@github.com"
+            git config --global user.name "GitHub Actions"
+            git add ${{ env.BRANCH }}_${{ env.FEAT }}_previous_commit_id.txt
+            git commit -m "Update previous commit ID"
+            git push origin main
+            echo "condition=true" >> $GITHUB_ENV
+          fi
 
       - uses: actions/cache@v4
         id: repo-cache
