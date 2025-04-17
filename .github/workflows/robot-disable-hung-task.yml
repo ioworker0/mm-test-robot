@@ -51,18 +51,20 @@ jobs:
           fi
 
       - uses: actions/cache@v4
+        if: env.condition == 'true'
         id: repo-cache
         with:
           path: .
           key: linux
     
       - name: clone repo
-        if: steps.repo-cache.outputs.cache-hit != 'true'
+        if: steps.repo-cache.outputs.cache-hit != 'true' && env.condition == 'true'
         run: |
           ls -l
           git clone -v ${{ env.REPO }} linux
           
       - name: pre-clean up
+        if: env.condition == 'true'
         run: |
           cd linux
           git checkout master
@@ -75,14 +77,17 @@ jobs:
           rm -rf .config*
           
       - name: pull branch
+        if: env.condition == 'true'
         run: |
           cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
 
       - name: pre-build kernel x86-64
+        if: env.condition == 'true'
         run: |  
           sudo apt-get install -y libelf-dev
 
       - name: build kernel x86-64 w/o CONFIG_DETECT_HUNG_TASK
+        if: env.condition == 'true'
         run: |  
           cd linux
           cp $(ls /boot/config-* | shuf -n 1) .config
@@ -98,12 +103,14 @@ jobs:
           make -j$(nproc) bzImage
 
       - name: post-build kernel x86-64 w/o CONFIG_DETECT_HUNG_TASK
+        if: env.condition == 'true'
         run: |  
           cd linux
           make clean
           rm -rf .config*
 
       - name: post-build kernel x86-64
+        if: env.condition == 'true'
         run: |  
           cd linux
           make clean
