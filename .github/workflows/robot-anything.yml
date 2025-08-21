@@ -115,8 +115,8 @@ jobs:
       #     cp $(ls /boot/config-* | shuf -n 1) .config
       #     sed -i 's/^# CONFIG_KASAN is not set/CONFIG_KASAN=y/' .config
       #     sed -i 's/^# CONFIG_KCSAN is not set/CONFIG_KCSAN=y/' .config
-      #     sed -i 's/^# CONFIG_DETECT_HUNG_TASK=y/CONFIG_DETECT_HUNG_TASK is not set/' .config
-      #     sed -i 's/^# CONFIG_DETECT_HUNG_TASK_BLOCKER=y/CONFIG_DETECT_HUNG_TASK_BLOCKER is not set/' .config
+      #     sed -i 's/^CONFIG_DETECT_HUNG_TASK=y/# CONFIG_DETECT_HUNG_TASK is not set/' .config
+      #     sed -i 's/^CONFIG_DETECT_HUNG_TASK_BLOCKER=y/# CONFIG_DETECT_HUNG_TASK_BLOCKER is not set/' .config
       #     make olddefconfig
       #     sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
       #     sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
