@@ -24,20 +24,18 @@ jobs:
           uname -r && uname -m && echo $(nproc) && free -h
           
       - uses: actions/cache@v4
-        if: env.condition == 'true'
         id: repo-cache
         with:
           path: .
           key: linux
     
       - name: clone repo
-        if: steps.repo-cache.outputs.cache-hit != 'true' && env.condition == 'true'
+        if: steps.repo-cache.outputs.cache-hit != 'true'
         run: |
           ls -l
           git clone -v ${{ env.REPO }} linux
           
       - name: pre-clean up
-        if: env.condition == 'true'
         run: |
           cd linux
           git checkout master
@@ -50,12 +48,10 @@ jobs:
           rm -rf .config*
           
       - name: pull branch
-        if: env.condition == 'true'
         run: |
           cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
 
       - name: pre-build kernel arm64
-        if: env.condition == 'true'
         run: |  
           sudo apt-get update && \
           sudo apt-get install -y gcc-14-aarch64-linux-gnu && \
@@ -63,7 +59,6 @@ jobs:
           sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-14 /usr/bin/aarch64-linux-gnu-gcc
           
       - name: build kernel arm64
-        if: env.condition == 'true'
         run: |  
           cd linux
           make ARCH=arm64 mrproper
@@ -74,7 +69,6 @@ jobs:
           make -j$(nproc)
         
       - name: post-build kernel arm64
-        if: env.condition == 'true'
         run: |  
           cd linux
           make clean
