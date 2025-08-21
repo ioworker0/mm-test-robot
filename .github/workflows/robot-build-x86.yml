@@ -1,0 +1,73 @@
+name: Kernel Build x86
+
+on:
+  workflow_dispatch:
+
+env:
+  BRANCH: lance
+  KCONFIG: CONFIG_SYSCTL
+  REPO: https://github.com/ioworker0/linux.git
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: robot
+
+      - name: system resources
+        run: |      
+          uname -r && uname -m && echo $(nproc) && free -h
+          
+      - uses: actions/cache@v4
+        id: repo-cache
+        with:
+          path: .
+          key: linux
+    
+      - name: clone repo
+        if: steps.repo-cache.outputs.cache-hit != 'true'
+        run: |
+          ls -l
+          git clone -v ${{ env.REPO }} linux
+          
+      - name: pre-clean up
+        run: |
+          cd linux
+          git checkout master
+          if git rev-parse --verify ${{ env.BRANCH }} >/dev/null 2>&1; then
+            git branch -D ${{ env.BRANCH }}
+          else
+            echo "Branch ${{ env.BRANCH }} does not exist."
+          fi
+          make clean
+          rm -rf .config*
+          
+      - name: pull branch
+        run: |
+          cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
+        
+      - name: pre-build kernel x86-64
+        run: |  
+          sudo apt-get install -y libelf-dev
+
+      - name: build kernel x86-64 w/o ${{ env.KCONFIG }}
+        run: |  
+          cd linux
+          cp $(ls /boot/config-* | shuf -n 1) .config
+          sed -i 's/^# ${{ env.KCONFIG }}=y/${{ env.KCONFIG }} is not set/' .config
+          make olddefconfig
+          sed -i '/^${{ env.KCONFIG }}=.*/s/.*/${{ env.KCONFIG }}=""/' .config
+          cat .config|grep ${{ env.KCONFIG }}
+          make -j$(nproc) bzImage
+
+      - name: post-build kernel x86-64
+        run: |  
+          cd linux
+          make clean
+          rm -rf .config*
