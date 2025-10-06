@@ -5,7 +5,7 @@ on:
 
 env:
   BRANCH: lance
-  KCONFIG: CONFIG_SYSCTL
+  KCONFIG: CONFIG_DEBUG_VM
   REPO: https://github.com/ioworker0/linux.git
 
 jobs:
@@ -56,16 +56,35 @@ jobs:
         run: |  
           sudo apt-get install -y libelf-dev
 
+      - name: build kernel x86-64 w/ ${{ env.KCONFIG }}
+        run: |  
+          cd linux
+          cp $(ls /boot/config-* | shuf -n 1) .config
+          cat .config|grep ${{ env.KCONFIG }}
+          cat .config|grep CONFIG_DEBUG
+          cat .config|grep CONFIG_TRANSPARENT_HUGEPAGE
+          make olddefconfig
+          sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
+          sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
+          sed -i "s/^# ${{ env.KCONFIG }} is not set/${{ env.KCONFIG }}=y/" .config
+          sed -i 's/^# CONFIG_TRANSPARENT_HUGEPAGE is not set/CONFIG_TRANSPARENT_HUGEPAGE=y/' .config
+          cat .config|grep ${{ env.KCONFIG }}
+          cat .config|grep CONFIG_TRANSPARENT_HUGEPAGE
+          make -j$(nproc) bzImage
+
       - name: build kernel x86-64 w/o ${{ env.KCONFIG }}
         run: |  
           cd linux
           cp $(ls /boot/config-* | shuf -n 1) .config
-          sed -i 's/^${{ env.KCONFIG }}=y/# ${{ env.KCONFIG }} is not set/' .config
+          cat .config|grep ${{ env.KCONFIG }}
+          cat .config|grep CONFIG_TRANSPARENT_HUGEPAGE
           make olddefconfig
           sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
           sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
           sed -i 's/^${{ env.KCONFIG }}=y/# ${{ env.KCONFIG }} is not set/' .config
+          sed -i 's/^# CONFIG_TRANSPARENT_HUGEPAGE is not set/CONFIG_TRANSPARENT_HUGEPAGE=y/' .config
           cat .config|grep ${{ env.KCONFIG }}
+          cat .config|grep CONFIG_TRANSPARENT_HUGEPAGE
           make -j$(nproc) bzImage
 
       - name: post-build kernel x86-64
