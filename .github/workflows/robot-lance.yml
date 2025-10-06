@@ -120,9 +120,13 @@ jobs:
           sed -i 's/^# CONFIG_KASAN is not set/CONFIG_KASAN=y/' .config
           sed -i 's/^# CONFIG_KCSAN is not set/CONFIG_KCSAN=y/' .config
           make olddefconfig
+          sed -i 's/^# CONFIG_DEBUG_VM is not set/CONFIG_DEBUG_VM=y/' .config
           sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
           sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
           # make -j$(nproc) bzImage KCFLAGS="-Wunused-variable -Werror=unused-variable"
+          cat .config|grep CONFIG_DEBUG
+          cat .config|grep CONFIG_TRANSPARENT_HUGEPAGE
+          cat .config|grep HUNG_TASK
           make -j$(nproc) bzImage
 
       - name: post-build kernel x86-64
