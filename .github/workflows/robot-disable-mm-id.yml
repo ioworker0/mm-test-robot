@@ -84,7 +84,7 @@ jobs:
       - name: pre-build kernel x86-64
         if: env.condition == 'true'
         run: |  
-          sudo apt-get install -y libelf-dev
+          sudo apt-get install -y libelf-dev libdwarf-dev
 
       - name: build kernel x86-64 w/o CONFIG_MM_ID
         if: env.condition == 'true'
