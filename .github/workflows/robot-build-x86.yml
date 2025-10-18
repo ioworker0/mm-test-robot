@@ -54,7 +54,7 @@ jobs:
         
       - name: pre-build kernel x86-64
         run: |  
-          sudo apt-get install -y libelf-dev
+          sudo apt-get install -y libelf-dev libdwarf-dev
 
       - name: build kernel x86-64 w/ ${{ env.KCONFIG }}
         run: |  
