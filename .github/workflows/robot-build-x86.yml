@@ -70,6 +70,9 @@ jobs:
           sed -i 's/^# CONFIG_TRANSPARENT_HUGEPAGE is not set/CONFIG_TRANSPARENT_HUGEPAGE=y/' .config
           cat .config|grep ${{ env.KCONFIG }}
           cat .config|grep CONFIG_TRANSPARENT_HUGEPAGE
+          echo "cat .config"
+          cat .config
+          echo "Done: cat .config"
           make -j$(nproc) bzImage
 
       - name: build kernel x86-64 w/o ${{ env.KCONFIG }}
