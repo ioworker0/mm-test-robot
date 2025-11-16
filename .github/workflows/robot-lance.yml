@@ -127,6 +127,9 @@ jobs:
           cat .config|grep CONFIG_DEBUG
           cat .config|grep CONFIG_TRANSPARENT_HUGEPAGE
           cat .config|grep HUNG_TASK
+          echo "cat .config"
+          cat .config
+          echo "Done: cat .config"
           make -j$(nproc) bzImage
 
       - name: post-build kernel x86-64
