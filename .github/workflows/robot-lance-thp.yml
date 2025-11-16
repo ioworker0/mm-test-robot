@@ -106,6 +106,9 @@ jobs:
           sed -i '/^CONFIG_SYSTEM_TRUSTED_KEYS=.*/s/.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
           sed -i '/^CONFIG_SYSTEM_REVOCATION_KEYS=.*/s/.*/CONFIG_SYSTEM_REVOCATION_KEYS=""/' .config
           sed -i 's/^CONFIG_TRANSPARENT_HUGEPAGE=y/# CONFIG_TRANSPARENT_HUGEPAGE is not set/' .config
+          echo "cat .config"
+          cat .config
+          echo "Done: cat .config"
           make -j$(nproc) bzImage
 
       - name: post-build kernel x86-64
