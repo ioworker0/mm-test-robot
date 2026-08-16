@@ -23,7 +23,7 @@ jobs:
         run: |      
           uname -r && uname -m && echo $(nproc) && free -h
           
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         id: repo-cache
         with:
           path: linux
