@@ -16,6 +16,10 @@ env:
   BRANCH: lance
   REPO: https://github.com/ioworker0/linux.git
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,7 +28,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           path: robot
 
@@ -33,38 +37,29 @@ jobs:
           uname -r && uname -m && echo $(nproc) && free -h
 
       - name: check against the commit ID
+        id: target
+        working-directory: robot
         run: |
-          cd robot
-          export PREVIOUS_COMMIT_ID=$(cat ${{ env.BRANCH }}_previous_commit_id.txt)
-          export LATEST_COMMIT_ID=$(git ls-remote ${{ env.REPO }} refs/heads/${{ env.BRANCH }} | awk '{print $1}')
-          if [ "$PREVIOUS_COMMIT_ID" = "$LATEST_COMMIT_ID" ]; then
-            echo "Commit ID has not changed. No action needed :P"
-            echo "condition=false" >> $GITHUB_ENV
-          else
-            echo $LATEST_COMMIT_ID > ${{ env.BRANCH }}_previous_commit_id.txt
-            git config --global user.email "actions@github.com"
-            git config --global user.name "GitHub Actions"
-            git add ${{ env.BRANCH }}_previous_commit_id.txt
-            git commit -m "Update previous commit ID"
-            git push origin main
-            echo "condition=true" >> $GITHUB_ENV
-          fi
+          ./.github/scripts/target-state.sh check \
+            "${{ env.BRANCH }}_previous_commit_id.txt" \
+            "${{ env.REPO }}" \
+            "${{ env.BRANCH }}"
           
       - uses: actions/cache@v4
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         id: repo-cache
         with:
           path: .
           key: linux
     
       - name: clone repo
-        if: steps.repo-cache.outputs.cache-hit != 'true' && env.condition == 'true'
+        if: steps.repo-cache.outputs.cache-hit != 'true' && steps.target.outputs.changed == 'true'
         run: |
           ls -l
           git clone -v ${{ env.REPO }} linux
           
       - name: pre-clean up
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         run: |
           cd linux
           git checkout master
@@ -76,13 +71,17 @@ jobs:
           make clean
           rm -rf .config*
           
-      - name: pull branch
-        if: env.condition == 'true'
+      - name: check out target commit
+        if: steps.target.outputs.changed == 'true'
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.target_sha }}
         run: |
-          cd linux && git pull && git checkout ${{ env.BRANCH }} && git pull
+          cd linux
+          git fetch origin "${{ env.BRANCH }}"
+          git checkout --detach "$TARGET_SHA"
 
       - name: pre-build kernel arm64
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         run: |  
           sudo apt-get update && \
           sudo apt-get install -y gcc-14-aarch64-linux-gnu && \
@@ -90,7 +89,7 @@ jobs:
           sudo ln -s /usr/bin/aarch64-linux-gnu-gcc-14 /usr/bin/aarch64-linux-gnu-gcc
           
       - name: build kernel arm64
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         run: |  
           cd linux
           make ARCH=arm64 mrproper
@@ -101,20 +100,20 @@ jobs:
           make -j$(nproc)
         
       - name: post-build kernel arm64
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         run: |  
           cd linux
           make clean
           rm -rf .config*
 
       - name: pre-build kernel x86-64
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         run: |  
           sudo apt-get update
           sudo apt-get install -y libelf-dev libdwarf-dev libdw-dev
        
       - name: build kernel x86-64
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         run: |  
           cd linux
           cp $(ls /boot/config-* | shuf -n 1) .config
@@ -134,8 +133,18 @@ jobs:
           make -j$(nproc) bzImage
 
       - name: post-build kernel x86-64
-        if: env.condition == 'true'
+        if: steps.target.outputs.changed == 'true'
         run: |  
           cd linux
           make clean
           rm -rf .config*
+
+      - name: record successful commit ID
+        if: steps.target.outputs.changed == 'true' && success()
+        working-directory: robot
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.target_sha }}
+        run: |
+          ./.github/scripts/target-state.sh record \
+            "${{ env.BRANCH }}_previous_commit_id.txt" \
+            "$TARGET_SHA"
