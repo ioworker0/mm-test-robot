@@ -58,7 +58,7 @@ jobs:
         if: steps.target.outputs.changed == 'true'
         id: repo-cache
         with:
-          path: .
+          path: linux
           key: linux
     
       - name: clone repo
